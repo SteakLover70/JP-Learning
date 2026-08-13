@@ -1,4 +1,4 @@
-// script.js — full working code
+// script.js — Select-all removed; combined Reveal/Next button remains
 // Assumes items.json at site root (optional) or CSV/JSON upload
 // Data shape: [{chi:"", jpn:"", kana:"", cat:"optional-category"}]
 
@@ -7,10 +7,8 @@
    ------------------------- */
 const fileInput = document.getElementById('fileInput');
 const startBtn = document.getElementById('startBtn');
-const revealBtn = document.getElementById('revealBtn');
-const nextBtn = document.getElementById('nextBtn');
+const revealNextBtn = document.getElementById('revealNextBtn'); // combined button
 const prevBtn = document.getElementById('prevBtn');
-const resetBtn = document.getElementById('resetBtn');
 
 const statusEl = document.getElementById('status');
 const chiEl = document.getElementById('chi');
@@ -18,7 +16,7 @@ const jpnEl = document.getElementById('jpn');
 const kanaEl = document.getElementById('kana');
 
 const categoryListEl = document.getElementById('categoryList');
-const selectAllCatsEl = document.getElementById('selectAllCats');
+// selectAll removed
 
 /* -------------------------
    Storage keys & state
@@ -78,19 +76,31 @@ function setStatus(text){
 
 function updateUI(){
   if(!workingItems.length){
-    setStatus('No items loaded / selected. Upload or host /items.json and choose categories.');
+    setStatus('No items loaded / selected. Upload or host items.json and choose categories.');
     chiEl.textContent = '—';
     jpnEl.style.display = 'none';
     kanaEl.style.display = 'none';
-    revealBtn.disabled = true;
-    nextBtn.disabled = true;
+    revealNextBtn.disabled = true;
     prevBtn.disabled = true;
     return;
   }
 
   setStatus(`Items available: ${workingItems.length}. Shown: ${history.length} / ${workingItems.length}.`);
-  revealBtn.disabled = (pos < 0 || pos >= order.length || revealed);
-  nextBtn.disabled = (pos < 0 || pos >= order.length - 1);
+
+  // Combined button text and enabled/disabled
+  if(pos < 0 || pos >= order.length){
+    revealNextBtn.textContent = 'Reveal';
+    revealNextBtn.disabled = false;
+  } else {
+    if(revealed){
+      revealNextBtn.textContent = (pos < order.length - 1) ? 'Next' : 'Finish';
+      revealNextBtn.disabled = false;
+    } else {
+      revealNextBtn.textContent = 'Reveal';
+      revealNextBtn.disabled = false;
+    }
+  }
+
   prevBtn.disabled = history.length <= 1;
 
   if(pos >= 0 && pos < order.length){
@@ -117,15 +127,24 @@ function updateUI(){
 }
 
 /* -------------------------
-   Category UI
+   Category UI (select-all removed)
    ------------------------- */
 function buildCategoryUI(){
-  const cats = new Set(items.map(it => (it.cat || 'uncategorized').toString().trim()));
+  const cats = new Set(items.map(it => {
+    const c = (it.cat || 'uncategorized').toString().trim();
+    return c === '' ? 'uncategorized' : c;
+  }));
   availableCategories = Array.from(cats).sort();
   categoryListEl.innerHTML = '';
+
   // load saved selection
   const saved = loadCats();
-  if(Array.isArray(saved) && saved.length) chosenCategories = new Set(saved);
+  if(Array.isArray(saved) && saved.length){
+    chosenCategories = new Set(saved);
+  } else {
+    // if no saved selection, default to all categories selected
+    chosenCategories = new Set(availableCategories);
+  }
 
   availableCategories.forEach(cat=>{
     const id = 'cat_' + cat.replace(/\s+/g,'_').replace(/[^\w-]/g,'');
@@ -135,37 +154,16 @@ function buildCategoryUI(){
     cb.type = 'checkbox';
     cb.id = id;
     cb.value = cat;
-    // default: checked unless saved selection exists
-    cb.checked = (chosenCategories.size ? chosenCategories.has(cat) : true);
-    if(cb.checked) chosenCategories.add(cat);
+    cb.checked = chosenCategories.has(cat);
     cb.addEventListener('change', (e)=>{
       if(e.target.checked) chosenCategories.add(cat);
       else chosenCategories.delete(cat);
-      // update select all checkbox
-      const allChecked = availableCategories.every(c=>{
-        const el = document.getElementById('cat_' + c.replace(/\s+/g,'_').replace(/[^\w-]/g,'')); return el && el.checked;
-      });
-      selectAllCatsEl.checked = allChecked;
       saveCats();
     });
     label.appendChild(cb);
     label.appendChild(document.createTextNode(' ' + cat));
     categoryListEl.appendChild(label);
   });
-
-  // selectAll behavior
-  selectAllCatsEl.checked = availableCategories.every(c=>{
-    const el = document.getElementById('cat_' + c.replace(/\s+/g,'_').replace(/[^\w-]/g,''));
-    return el && el.checked;
-  });
-  selectAllCatsEl.onchange = ()=>{
-    const checked = selectAllCatsEl.checked;
-    availableCategories.forEach(c=>{
-      const el = document.getElementById('cat_' + c.replace(/\s+/g,'_').replace(/[^\w-]/g,''));
-      if(el){ el.checked = checked; if(checked) chosenCategories.add(c); else chosenCategories.delete(c); }
-    });
-    saveCats();
-  };
 }
 
 /* produce workingItems (filtered) from chosenCategories */
@@ -177,18 +175,32 @@ function getFilteredItems(){
 /* -------------------------
    Core controls
    ------------------------- */
+/* start(): will always rebuild deck from current category selection */
 function start(){
+  // Recompute selected categories into workingItems right away
   workingItems = getFilteredItems();
+
+  // If no chosen categories (or none selected), fallback to all items if available
+  if(!workingItems.length){
+    if(items.length){
+      workingItems = items.slice();
+    }
+  }
+
   if(!workingItems.length){
     alert('No items for selected categories. Please select at least one category.');
     return;
   }
+
+  // Build new shuffled order and reset progress
   order = makeShuffled(workingItems.length);
   pos = -1;
   history = [];
   revealed = false;
   saveState();
-  next(); // automatically show first
+
+  // Show the first card immediately
+  goNext();
 }
 
 function reveal(){
@@ -198,7 +210,7 @@ function reveal(){
   updateUI();
 }
 
-function next(){
+function goNext(){
   if(pos < order.length - 1){
     pos++;
     history.push(order[pos]);
@@ -221,6 +233,7 @@ function previous(){
 }
 
 function resetStorage(){
+  // kept for manual use (not wired to UI)
   if(!confirm('Remove stored items, categories and progress from this browser?')) return;
   localStorage.removeItem(STORAGE_ITEMS);
   localStorage.removeItem(STORAGE_STATE);
@@ -229,6 +242,49 @@ function resetStorage(){
   categoryListEl.innerHTML = '';
   updateUI();
   alert('Cleared local storage for this site.');
+}
+
+/* -------------------------
+   Combined Reveal/Next button behavior
+   ------------------------- */
+function revealNextAction(){
+  // If no current card shown yet -> start deck and reveal first card
+  if(pos < 0 || pos >= order.length){
+    // ensure deck prepared
+    if(!order.length){
+      workingItems = getFilteredItems();
+      if(!workingItems.length){
+        // fallback to full items if none selected
+        if(items.length) workingItems = items.slice();
+      }
+      if(!workingItems.length){
+        alert('No items for selected categories. Please select at least one category.');
+        return;
+      }
+      order = makeShuffled(workingItems.length);
+      pos = -1;
+      history = [];
+      revealed = false;
+    }
+    // advance to first card and reveal it
+    goNext();      // sets pos to 0 and revealed=false
+    revealed = true;
+    saveState();
+    updateUI();
+    return;
+  }
+
+  // If current card is not revealed -> reveal it
+  if(!revealed){
+    reveal();
+    return;
+  }
+
+  // If current card is revealed -> move to next
+  if(revealed){
+    goNext();
+    return;
+  }
 }
 
 /* -------------------------
@@ -306,10 +362,10 @@ function finishLoadFromItems(arr, sourceNote){
 }
 
 /* -------------------------
-   Initialization: try fetch /items.json, else load local storage
+   Initialization: try fetch items.json (relative) then local storage
    ------------------------- */
 async function init(){
-  setStatus('Loading /items.json if present...');
+  setStatus('Loading items.json if present...');
   try {
     const resp = await fetch('items.json', {cache: 'no-store'});
     if(resp.ok){
@@ -326,17 +382,17 @@ async function init(){
         localStorage.removeItem(STORAGE_STATE);
         buildCategoryUI();
         workingItems = items.slice();
-        setStatus(`Loaded ${items.length} items from /items.json (shared). Choose categories and press Start.`);
+        setStatus(`Loaded ${items.length} items from items.json (shared). Choose categories and press Start.`);
         updateUI();
         return;
       } else {
-        console.warn('/items.json not expected shape');
+        console.warn('items.json not expected shape');
       }
     } else {
-      console.info('/items.json not found (HTTP ' + resp.status + ')');
+      console.info('items.json not found (HTTP ' + resp.status + ')');
     }
   } catch(err){
-    console.warn('fetch /items.json failed', err);
+    console.warn('fetch items.json failed', err);
   }
 
   // fallback: load from localStorage
@@ -366,7 +422,7 @@ async function init(){
   } else {
     items = [];
     workingItems = [];
-    setStatus('No items found. Upload CSV/JSON or host /items.json in the site root.');
+    setStatus('No items found. Upload CSV/JSON or host items.json in the site root.');
     updateUI();
   }
 }
@@ -375,10 +431,8 @@ async function init(){
    Wire up buttons
    ------------------------- */
 startBtn.addEventListener('click', start);
-revealBtn.addEventListener('click', reveal);
-nextBtn.addEventListener('click', next);
+revealNextBtn.addEventListener('click', revealNextAction);
 prevBtn.addEventListener('click', previous);
-resetBtn.addEventListener('click', resetStorage);
 
 /* -------------------------
    Start
