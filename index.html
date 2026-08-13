@@ -15,20 +15,19 @@
         <label class="file-label">Upload CSV / JSON
           <input id="fileInput" type="file" accept=".json,.csv" />
         </label>
-        <div class="hint">Or host <code>/items.json</code> in site root for shared DB</div>
+        <div class="hint">Or host <code>items.json</code> in site root for shared DB</div>
       </div>
 
       <div class="category-panel">
-        <label><input id="selectAllCats" type="checkbox" checked> Select all</label>
+        <!-- Select all removed as requested -->
         <div id="categoryList" class="category-list" aria-live="polite"></div>
       </div>
 
       <div class="buttons">
         <button id="startBtn" class="btn primary">Start / Shuffle</button>
-        <button id="revealBtn" class="btn" disabled>Reveal JP + Kana</button>
-        <button id="nextBtn" class="btn" disabled>Next</button>
+        <!-- Combined Reveal + Next button -->
+        <button id="revealNextBtn" class="btn" disabled>Reveal</button>
         <button id="prevBtn" class="btn" disabled>Previous</button>
-        <button id="resetBtn" class="btn danger">Reset storage</button>
       </div>
 
       <div id="status" class="status">Loading...</div>
