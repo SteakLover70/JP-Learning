@@ -311,7 +311,7 @@ function finishLoadFromItems(arr, sourceNote){
 async function init(){
   setStatus('Loading /items.json if present...');
   try {
-    const resp = await fetch('/items.json', {cache: 'no-store'});
+    const resp = await fetch('items.json', {cache: 'no-store'});
     if(resp.ok){
       const parsed = await resp.json();
       if(Array.isArray(parsed) && parsed.every(o=>o && typeof o === 'object')){
