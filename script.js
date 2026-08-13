@@ -374,7 +374,7 @@ async function init(){
         items = parsed.map(o=>({
           chi: String(o.chi || '').trim(),
           jpn: String(o.jpn || '').trim(),
-          kana: String(o.kana || '').trim(),
+          kana: String(o.k || '').trim(),
           cat: String(o.cat || '').trim()
         })).filter(x=>x.chi);
         saveItemsToStorage(items);
@@ -435,26 +435,79 @@ revealNextBtn.addEventListener('click', revealNextAction);
 prevBtn.addEventListener('click', previous);
 
 /* -------------------------
-   Prevent accidental double-tap-to-zoom (safe)
-   - preserves pinch-to-zoom
-   - ignores form controls so inputs still work
+   Disable all zoom (aggressive)
+   - Injects/updates meta viewport to prevent zoom
+   - Adds touch-action CSS to html/body (helps non-iOS browsers)
+   - Blocks gesturestart (iOS), multi-touch touchmove, and ctrl+wheel zoom
+   WARNING: This disables all zooming (accessibility implications).
    ------------------------- */
-(function preventDoubleTapZoom() {
-  const maxInterval = 300; // ms between taps considered a double-tap
-  let lastTouchTime = 0;
+(function disableAllZoom() {
+  // 1) Ensure meta viewport includes maximum-scale=1 and user-scalable=no
+  try {
+    let meta = document.querySelector('meta[name="viewport"]');
+    const desired = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
+    if (meta) {
+      // Update existing meta while preserving other properties if possible
+      meta.setAttribute('content', desired);
+    } else {
+      meta = document.createElement('meta');
+      meta.name = 'viewport';
+      meta.content = desired;
+      const head = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+      head.appendChild(meta);
+    }
+  } catch (err) {
+    console.warn('Failed to set viewport meta tag', err);
+  }
 
-  document.addEventListener('touchend', function (e) {
-    // Ignore if the user tapped an input/textarea/select (so forms still work)
-    const tag = e.target && e.target.tagName;
-    if (tag && /^(INPUT|TEXTAREA|SELECT)$/i.test(tag)) return;
+  // 2) Add CSS to prevent touch zoom gestures where supported
+  try {
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.appendChild(document.createTextNode(
+      'html, body { touch-action: none !important; -ms-touch-action: none !important; }'
+    ));
+    (document.head || document.documentElement).appendChild(style);
+  } catch (err) {
+    console.warn('Failed to inject touch-action CSS', err);
+  }
 
-    const now = Date.now();
-    if (now - lastTouchTime <= maxInterval) {
-      // Prevent the default double-tap-to-zoom behavior
+  // 3) Block iOS gesturestart (pinch) and prevent multi-touch move from causing pinch
+  function onGestureStart(e) {
+    // gesturestart is iOS-specific; prevent default to block pinch-zoom gesture
+    e.preventDefault();
+  }
+  function onTouchMove(e) {
+    if (e.touches && e.touches.length > 1) {
       e.preventDefault();
     }
-    lastTouchTime = now;
-  }, { passive: false });
+  }
+  function onWheel(e) {
+    // Prevent ctrl+wheel zoom on desktop
+    if (e.ctrlKey) e.preventDefault();
+  }
+
+  // Add listeners (use passive: false so preventDefault works)
+  document.addEventListener('gesturestart', onGestureStart, { passive: false });
+  document.addEventListener('touchmove', onTouchMove, { passive: false });
+  window.addEventListener('wheel', onWheel, { passive: false });
+
+  // For safety: also prevent double-tap default handling (redundant with viewport but harmless)
+  (function blockDoubleTap() {
+    let lastTouchTime = 0;
+    const maxInterval = 300;
+    document.addEventListener('touchend', function (e) {
+      // still ignore form controls so they work
+      const tag = e.target && e.target.tagName;
+      if (tag && /^(INPUT|TEXTAREA|SELECT)$/i.test(tag)) return;
+      const now = Date.now();
+      if (now - lastTouchTime <= maxInterval) {
+        e.preventDefault();
+      }
+      lastTouchTime = now;
+    }, { passive: false });
+  })();
+
 })();
 
 /* -------------------------
