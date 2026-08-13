@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vocab Drill — Chinese → Japanese</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <h1>Vocab Drill — Chinese → Japanese</h1>
+
+    <section class="controls">
+      <div class="fileupload">
+        <label class="file-label">Upload CSV / JSON
+          <input id="fileInput" type="file" accept=".json,.csv" />
+        </label>
+        <div class="hint">Or host <code>/items.json</code> in site root for shared DB</div>
+      </div>
+
+      <div class="category-panel">
+        <label><input id="selectAllCats" type="checkbox" checked> Select all</label>
+        <div id="categoryList" class="category-list" aria-live="polite"></div>
+      </div>
+
+      <div class="buttons">
+        <button id="startBtn" class="btn primary">Start / Shuffle</button>
+        <button id="revealBtn" class="btn" disabled>Reveal JP + Kana</button>
+        <button id="nextBtn" class="btn" disabled>Next</button>
+        <button id="prevBtn" class="btn" disabled>Previous</button>
+        <button id="resetBtn" class="btn danger">Reset storage</button>
+      </div>
+
+      <div id="status" class="status">Loading...</div>
+    </section>
+
+    <section class="card">
+      <div id="chi" class="chi">—</div>
+      <div id="jpn" class="jpn" aria-hidden="true">—</div>
+      <div id="kana" class="kana" aria-hidden="true">—</div>
+    </section>
+
+    <footer class="footer">
+      Data format for items.json: an array of objects with keys "chi","jpn","kana" and optional "cat".
+      Example: [{"chi":"一","jpn":"一","kana":"いち","cat":"number"}]
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
