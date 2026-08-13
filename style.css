@@ -23,7 +23,7 @@ h1{margin:0 0 14px 0;font-size:1.25rem}
 .controls{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px}
 @media(min-width:720px){ .controls{grid-template-columns:320px 1fr} }
 
-.fileupload .file-label{display:inline-block;padding:8px 10px;border-radius:6px;background:var(--btn-bg);color:var(--btn-text);cursor:pointer;border:1px solid #d1d5db}
+.fileupload .file-label{display:inline-block;padding:10px 12px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);cursor:pointer;border:1px solid #d1d5db}
 .fileupload input[type="file"]{display:none}
 .hint{font-size:0.85rem;color:var(--muted);margin-top:6px}
 
@@ -31,8 +31,19 @@ h1{margin:0 0 14px 0;font-size:1.25rem}
 .category-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .category-list label{font-size:0.92rem;background:#f8fafc;padding:6px 8px;border-radius:6px;border:1px solid #eef2f6;cursor:pointer}
 
-.buttons{display:flex;gap:8px;flex-wrap:wrap}
-.btn{padding:8px 12px;border-radius:8px;border:1px solid #cbd5e1;background:var(--btn-bg);color:var(--btn-text);cursor:pointer;transition:transform .06s,filter .08s}
+/* Increased button size */
+.buttons{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  padding:12px 16px;            /* increased from 8px/12px */
+  font-size:1rem;              /* slightly larger text */
+  border-radius:10px;          /* slightly rounder */
+  border:1px solid #cbd5e1;
+  background:var(--btn-bg);
+  color:var(--btn-text);
+  cursor:pointer;
+  transition:transform .06s,filter .08s;
+  line-height:1;
+}
 .btn:hover:not(:disabled){filter:brightness(0.98);transform:translateY(-1px)}
 .btn:disabled{opacity:0.5;cursor:default;transform:none}
 .btn.primary{background:var(--btn-primary-bg);color:var(--btn-primary-text);border:1px solid rgba(0,0,0,0.08)}
