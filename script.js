@@ -434,14 +434,13 @@ startBtn.addEventListener('click', start);
 revealNextBtn.addEventListener('click', revealNextAction);
 prevBtn.addEventListener('click', previous);
 
-
 /* -------------------------
-Prevent accidental double-tap-to-zoom on iPhone while keeping pinch-to-zoom.
-    ------------------------- */
-// Paste this near the end of your page's script (e.g., at end of script.js or before </body>).
-
-(function () {
-  const maxInterval = 300; // milliseconds: taps closer than this count as a double-tap
+   Prevent accidental double-tap-to-zoom (safe)
+   - preserves pinch-to-zoom
+   - ignores form controls so inputs still work
+   ------------------------- */
+(function preventDoubleTapZoom() {
+  const maxInterval = 300; // ms between taps considered a double-tap
   let lastTouchTime = 0;
 
   document.addEventListener('touchend', function (e) {
@@ -451,13 +450,12 @@ Prevent accidental double-tap-to-zoom on iPhone while keeping pinch-to-zoom.
 
     const now = Date.now();
     if (now - lastTouchTime <= maxInterval) {
-      // Prevent the default double-tap zoom behavior
+      // Prevent the default double-tap-to-zoom behavior
       e.preventDefault();
     }
     lastTouchTime = now;
   }, { passive: false });
 })();
-
 
 /* -------------------------
    Start
