@@ -11,7 +11,14 @@
   <div class="wrap">
     <h1>Vocab Drill — Chinese → Japanese</h1>
 
-    <!-- ===== 1. CONTROL BUTTONS ===== -->
+    <!-- ===== 1. UPLOAD ===== -->
+    <div class="fileupload topbar">
+      <label class="file-label" for="fileInput">Upload CSV / JSON</label>
+      <input type="file" id="fileInput" accept=".csv,.json,text/csv,application/json">
+      <span class="hint">Or host <code>items.json</code> in site root for shared DB</span>
+    </div>
+
+    <!-- ===== 2. CONTROL BUTTONS ===== -->
     <div class="buttons">
       <button class="btn" id="startBtn">Start / Shuffle</button>
       <button class="btn primary" id="revealNextBtn">Reveal</button>
@@ -21,7 +28,7 @@
 
     <div class="status" id="status">Loading...</div>
 
-    <!-- ===== 2. DISPLAY BOX ===== -->
+    <!-- ===== 3. DISPLAY BOX ===== -->
     <div class="card">
       <div class="chi" id="chi">—</div>
 
@@ -34,7 +41,7 @@
       </button>
     </div>
 
-    <!-- ===== 3. SETTINGS (below the drill area) ===== -->
+    <!-- ===== 4. SETTINGS ===== -->
     <section class="settings">
       <h2 class="settings-title">Settings</h2>
 
@@ -56,22 +63,14 @@
         </div>
       </div>
 
-      <!-- upload + categories -->
-      <div class="controls">
-        <div class="fileupload">
-          <label class="file-label" for="fileInput">Upload CSV / JSON</label>
-          <input type="file" id="fileInput" accept=".csv,.json,text/csv,application/json">
-          <div class="hint">Or host <code>items.json</code> in site root for shared DB</div>
+      <!-- categories -->
+      <div class="category-panel">
+        <div class="cat-head">
+          <strong>Categories</strong>
+          <span class="cat-count" id="catCount"></span>
+          <button class="btn small" id="toggleAllBtn" type="button">Select all</button>
         </div>
-
-        <div class="category-panel">
-          <div class="cat-head">
-            <strong>Categories</strong>
-            <span class="cat-count" id="catCount"></span>
-            <button class="btn small" id="toggleAllBtn" type="button">Select all</button>
-          </div>
-          <div class="category-list" id="categoryList"></div>
-        </div>
+        <div class="category-list" id="categoryList"></div>
       </div>
     </section>
 
