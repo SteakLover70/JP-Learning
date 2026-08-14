@@ -435,6 +435,31 @@ revealNextBtn.addEventListener('click', revealNextAction);
 prevBtn.addEventListener('click', previous);
 
 /* -------------------------
+   iPhone / iPad: block double-tap zoom
+   ------------------------- */
+(function preventDoubleTapZoom(){
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', function(e){
+    const now = Date.now();
+    if(now - lastTouchEnd <= 350){
+      e.preventDefault(); // stops iOS double-tap zoom
+      const el = e.target && e.target.closest
+        ? e.target.closest('button, label, input, a')
+        : null;
+      if(el) el.click(); // keeps fast tapping on buttons working
+    }
+    lastTouchEnd = now;
+  }, {passive:false});
+})();
+
+/* Optional keyboard shortcuts (iPad with keyboard / desktop)
+   Space or → = Reveal/Next, ← = Previous */
+document.addEventListener('keydown', (e)=>{
+  if(e.code === 'Space' || e.code === 'ArrowRight'){ e.preventDefault(); revealNextAction(); }
+  if(e.code === 'ArrowLeft'){ e.preventDefault(); previous(); }
+});
+
+/* -------------------------
    Start
    ------------------------- */
 init();
