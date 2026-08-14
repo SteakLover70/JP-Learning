@@ -1,3 +1,20 @@
+/* ==== iOS: disable double-tap zoom ==== */
+html{ -webkit-text-size-adjust:100%; }
+*{ touch-action: manipulation; }
+
+.btn,
+.file-label,
+.cat-label,
+.category-list label,
+input[type="checkbox"],
+.chi, .jpn, .kana{
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.btn:disabled{ pointer-events:none; }
+/* ====================================== */
+
 :root{
   --bg:#fbfdff;
   --card:#ffffff;
@@ -34,9 +51,9 @@ h1{margin:0 0 14px 0;font-size:1.25rem}
 /* Increased button size */
 .buttons{display:flex;gap:10px;flex-wrap:wrap}
 .btn{
-  padding:12px 16px;            /* increased from 8px/12px */
-  font-size:1rem;              /* slightly larger text */
-  border-radius:10px;          /* slightly rounder */
+  padding:12px 16px;
+  font-size:1rem;
+  border-radius:10px;
   border:1px solid #cbd5e1;
   background:var(--btn-bg);
   color:var(--btn-text);
