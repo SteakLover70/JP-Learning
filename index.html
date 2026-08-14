@@ -1,49 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Vocab Drill — Chinese → Japanese</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Vocab Drill — Chinese → Japanese</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="wrap">
+  <div class="wrap">
     <h1>Vocab Drill — Chinese → Japanese</h1>
 
-    <section class="controls">
+    <div class="controls">
       <div class="fileupload">
-        <label class="file-label">Upload CSV / JSON
-          <input id="fileInput" type="file" accept=".json,.csv" />
-        </label>
+        <label class="file-label" for="fileInput">Upload CSV / JSON</label>
+        <input type="file" id="fileInput" accept=".csv,.json,text/csv,application/json">
         <div class="hint">Or host <code>items.json</code> in site root for shared DB</div>
       </div>
 
       <div class="category-panel">
-        <!-- Select all removed as requested -->
-        <div id="categoryList" class="category-list" aria-live="polite"></div>
+        <strong>Categories</strong>
+        <div class="category-list" id="categoryList"></div>
       </div>
+    </div>
 
-      <div class="buttons">
-        <button id="startBtn" class="btn primary">Start / Shuffle</button>
-        <!-- Combined Reveal + Next button -->
-        <button id="revealNextBtn" class="btn" disabled>Reveal</button>
-        <button id="prevBtn" class="btn" disabled>Previous</button>
-      </div>
+    <div class="buttons">
+      <button class="btn" id="startBtn">Start / Shuffle</button>
+      <button class="btn primary" id="revealNextBtn">Reveal</button>
+      <button class="btn" id="prevBtn">Previous</button>
+    </div>
 
-      <div id="status" class="status">Loading...</div>
-    </section>
+    <div class="status" id="status">Loading...</div>
 
-    <section class="card">
-      <div id="chi" class="chi">—</div>
-      <div id="jpn" class="jpn" aria-hidden="true">—</div>
-      <div id="kana" class="kana" aria-hidden="true">—</div>
-    </section>
+    <div class="card">
+      <div class="chi" id="chi">—</div>
+      <div class="jpn" id="jpn">—</div>
+      <div class="kana" id="kana">—</div>
+    </div>
 
-    <footer class="footer">
+    <div class="footer">
       Data format for items.json: an array of objects with keys "chi","jpn","kana" and optional "cat".
       Example: [{"chi":"一","jpn":"一","kana":"いち","cat":"number"}]
-    </footer>
-  </main>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
