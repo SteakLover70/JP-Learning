@@ -11,41 +11,7 @@
   <div class="wrap">
     <h1>Vocab Drill — Chinese → Japanese</h1>
 
-    <div class="controls">
-      <div class="fileupload">
-        <label class="file-label" for="fileInput">Upload CSV / JSON</label>
-        <input type="file" id="fileInput" accept=".csv,.json,text/csv,application/json">
-        <div class="hint">Or host <code>items.json</code> in site root for shared DB</div>
-      </div>
-
-      <div class="category-panel">
-        <div class="cat-head">
-          <strong>Categories</strong>
-          <span class="cat-count" id="catCount"></span>
-          <button class="btn small" id="toggleAllBtn" type="button">Select all</button>
-        </div>
-        <div class="category-list" id="categoryList"></div>
-      </div>
-    </div>
-
-    <!-- ===== Speech settings ===== -->
-    <div class="speech-panel" id="speechPanel">
-      <div class="speech-row">
-        <label class="chk"><input type="checkbox" id="autoSpeakChk"> Auto-speak on reveal</label>
-        <label class="rate">
-          Speed <input type="range" id="rateRange" min="0.5" max="1.5" step="0.05" value="0.9">
-          <span id="rateVal">0.90×</span>
-        </label>
-      </div>
-      <div class="speech-row">
-        <label class="voice">
-          Voice
-          <select id="voiceSelect"><option value="">Auto (best Japanese)</option></select>
-        </label>
-        <span class="speech-note" id="speechNote"></span>
-      </div>
-    </div>
-
+    <!-- ===== 1. CONTROL BUTTONS ===== -->
     <div class="buttons">
       <button class="btn" id="startBtn">Start / Shuffle</button>
       <button class="btn primary" id="revealNextBtn">Reveal</button>
@@ -55,10 +21,11 @@
 
     <div class="status" id="status">Loading...</div>
 
+    <!-- ===== 2. DISPLAY BOX ===== -->
     <div class="card">
       <div class="chi" id="chi">—</div>
 
-      <!-- these two are now real buttons: tap to pronounce -->
+      <!-- tap to pronounce -->
       <button type="button" class="jpn speakable is-hidden" id="jpn">
         <span class="word"></span><span class="spk">🔊</span>
       </button>
@@ -66,6 +33,47 @@
         <span class="word"></span><span class="spk">🔊</span>
       </button>
     </div>
+
+    <!-- ===== 3. SETTINGS (below the drill area) ===== -->
+    <section class="settings">
+      <h2 class="settings-title">Settings</h2>
+
+      <!-- speech -->
+      <div class="speech-panel" id="speechPanel">
+        <div class="speech-row">
+          <label class="chk"><input type="checkbox" id="autoSpeakChk"> Auto-speak on reveal</label>
+          <label class="rate">
+            Speed <input type="range" id="rateRange" min="0.5" max="1.5" step="0.05" value="0.9">
+            <span id="rateVal">0.90×</span>
+          </label>
+        </div>
+        <div class="speech-row">
+          <label class="voice">
+            Voice
+            <select id="voiceSelect"><option value="">Auto (best Japanese)</option></select>
+          </label>
+          <span class="speech-note" id="speechNote"></span>
+        </div>
+      </div>
+
+      <!-- upload + categories -->
+      <div class="controls">
+        <div class="fileupload">
+          <label class="file-label" for="fileInput">Upload CSV / JSON</label>
+          <input type="file" id="fileInput" accept=".csv,.json,text/csv,application/json">
+          <div class="hint">Or host <code>items.json</code> in site root for shared DB</div>
+        </div>
+
+        <div class="category-panel">
+          <div class="cat-head">
+            <strong>Categories</strong>
+            <span class="cat-count" id="catCount"></span>
+            <button class="btn small" id="toggleAllBtn" type="button">Select all</button>
+          </div>
+          <div class="category-list" id="categoryList"></div>
+        </div>
+      </div>
+    </section>
 
     <div class="footer">
       Tap the Japanese word or the kana to hear it. Data format for items.json: an array of objects with
