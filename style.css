@@ -40,7 +40,23 @@ h1{margin:0 0 14px 0;font-size:1.25rem}
 
 .is-hidden{display:none !important}
 
-/* ===== 1. buttons (now at top) ===== */
+/* ===== 1. upload row (top) ===== */
+.fileupload input[type="file"]{display:none}
+.fileupload .file-label{
+  display:inline-block;padding:10px 12px;border-radius:8px;
+  background:var(--btn-bg);color:var(--btn-text);cursor:pointer;border:1px solid #d1d5db;
+  line-height:1;
+}
+.fileupload .file-label:hover{filter:brightness(0.98)}
+
+.topbar{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  margin-bottom:12px;
+}
+.topbar .hint{margin-top:0}
+.hint{font-size:0.85rem;color:var(--muted);margin-top:6px}
+
+/* ===== 2. buttons ===== */
 .buttons{display:flex;gap:10px;flex-wrap:wrap}
 .btn{
   padding:12px 16px;font-size:1rem;border-radius:10px;border:1px solid #cbd5e1;
@@ -55,7 +71,7 @@ h1{margin:0 0 14px 0;font-size:1.25rem}
 
 .status{font-size:0.9rem;color:var(--muted);margin-top:8px}
 
-/* ===== 2. display box ===== */
+/* ===== 3. display box ===== */
 .card{margin-top:10px;background:var(--card);padding:22px;border-radius:var(--radius);box-shadow:0 1px 2px rgba(0,0,0,0.04);border:1px solid #e6edf3}
 .chi{font-size:2.25rem;font-weight:700;margin-bottom:10px}
 
@@ -83,7 +99,7 @@ h1{margin:0 0 14px 0;font-size:1.25rem}
   50%{box-shadow:0 0 0 6px rgba(37,99,235,0)}
 }
 
-/* ===== 3. settings section (below the drill) ===== */
+/* ===== 4. settings ===== */
 .settings{margin-top:22px;padding-top:16px;border-top:1px solid #e2e8f0}
 .settings-title{
   margin:0 0 10px 0;font-size:0.78rem;font-weight:700;
@@ -97,13 +113,6 @@ h1{margin:0 0 14px 0;font-size:1.25rem}
 .speech-panel input[type="range"]{width:150px}
 .speech-panel select{padding:6px 8px;border-radius:6px;border:1px solid #d1d5db;background:#fff;font-size:0.9rem;max-width:260px}
 .speech-note{font-size:0.8rem;color:var(--muted)}
-
-.controls{display:grid;grid-template-columns:1fr;gap:12px;margin:0}
-@media(min-width:720px){ .controls{grid-template-columns:320px 1fr} }
-
-.fileupload .file-label{display:inline-block;padding:10px 12px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);cursor:pointer;border:1px solid #d1d5db}
-.fileupload input[type="file"]{display:none}
-.hint{font-size:0.85rem;color:var(--muted);margin-top:6px}
 
 .category-panel{padding:8px;border-radius:8px;background:var(--card);border:1px solid #e6edf3}
 .cat-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
