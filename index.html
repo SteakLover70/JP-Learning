@@ -1,86 +1,111 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Vocab Drill — Chinese → Japanese</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="wrap">
-    <h1>Vocab Drill — Chinese → Japanese</h1>
+<div class="wrap">
 
-    <!-- ===== 1. UPLOAD ===== -->
-    <div class="fileupload topbar">
+  <h1>Vocab Drill — Chinese → Japanese</h1>
+
+  <div class="controls">
+
+    <!-- upload -->
+    <div class="fileupload">
       <label class="file-label" for="fileInput">Upload CSV / JSON</label>
-      <input type="file" id="fileInput" accept=".csv,.json,text/csv,application/json">
-      <span class="hint">Or host <code>items.json</code> in site root for shared DB</span>
+      <input id="fileInput" type="file" accept=".csv,.json,text/csv,application/json">
+      <div class="hint">Or host <code>items.json</code> in site root for shared DB</div>
     </div>
 
-    <!-- ===== 2. CONTROL BUTTONS ===== -->
-    <div class="buttons">
-      <button class="btn" id="startBtn">Start / Shuffle</button>
-      <button class="btn primary" id="revealNextBtn">Reveal</button>
-      <button class="btn" id="prevBtn">Previous</button>
-      <button class="btn" id="speakBtn" title="Speak again">🔊 Speak</button>
-    </div>
-
-    <div class="status" id="status">Loading...</div>
-
-    <!-- ===== 3. DISPLAY BOX ===== -->
-    <div class="card">
-      <div class="chi" id="chi">—</div>
-
-      <!-- tap to pronounce -->
-      <button type="button" class="jpn speakable is-hidden" id="jpn">
-        <span class="word"></span><span class="spk">🔊</span>
-      </button>
-      <button type="button" class="kana speakable is-hidden" id="kana">
-        <span class="word"></span><span class="spk">🔊</span>
-      </button>
-    </div>
-
-    <!-- ===== 4. SETTINGS ===== -->
-    <section class="settings">
-      <h2 class="settings-title">Settings</h2>
-
-      <!-- speech -->
-      <div class="speech-panel" id="speechPanel">
-        <div class="speech-row">
-          <label class="chk"><input type="checkbox" id="autoSpeakChk"> Auto-speak on reveal</label>
-          <label class="rate">
-            Speed <input type="range" id="rateRange" min="0.5" max="1.5" step="0.05" value="0.9">
-            <span id="rateVal">0.90×</span>
-          </label>
-        </div>
-        <div class="speech-row">
-          <label class="voice">
-            Voice
-            <select id="voiceSelect"><option value="">Auto (best Japanese)</option></select>
-          </label>
-          <span class="speech-note" id="speechNote"></span>
-        </div>
+    <!-- categories (compact + collapsible) -->
+    <div class="category-panel" id="categoryPanel">
+      <div class="cat-head">
+        <strong class="cat-title">Categories</strong>
+        <span class="cat-count" id="catCount"></span>
+        <button class="btn small" id="toggleAllBtn" type="button">Select all</button>
+        <button class="btn small" id="catToggleBtn" type="button" aria-expanded="false">Show ▾</button>
       </div>
+      <div class="cat-summary" id="catSummary"></div>
+      <div class="category-list is-collapsed" id="categoryList"></div>
+    </div>
 
-      <!-- categories -->
-      <div class="category-panel">
-        <div class="cat-head">
-          <strong>Categories</strong>
-          <span class="cat-count" id="catCount"></span>
-          <button class="btn small" id="toggleAllBtn" type="button">Select all</button>
-        </div>
-        <div class="category-list" id="categoryList"></div>
-      </div>
-    </section>
+  </div>
 
-    <div class="footer">
-      Tap the Japanese word or the kana to hear it. Data format for items.json: an array of objects with
-      keys "chi","jpn","kana" and optional "cat".
-      Example: [{"chi":"一","jpn":"一","kana":"いち","cat":"number"}]
+  <!-- speech settings -->
+  <div class="speech-panel" id="speechPanel">
+    <div class="speech-row">
+      <label><input type="checkbox" id="autoSpeakChk"> Auto-speak on reveal</label>
+      <label>Speed
+        <input type="range" id="rateRange" min="0.5" max="1.4" step="0.05" value="0.9">
+        <span id="rateVal">0.90×</span>
+      </label>
+    </div>
+    <div class="speech-row">
+      <label>Voice
+        <select id="voiceSelect">
+          <option value="">Auto (best Japanese)</option>
+        </select>
+      </label>
+      <span class="speech-note" id="speechNote"></span>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <!-- buttons -->
+  <div class="buttons">
+    <button class="btn" id="startBtn" type="button">Start / Shuffle</button>
+    <button class="btn" id="reviseBtn" type="button">📖 Revise</button>
+    <button class="btn primary" id="revealNextBtn" type="button">Reveal</button>
+    <button class="btn" id="prevBtn" type="button">Previous</button>
+    <button class="btn" id="speakBtn" type="button">🔊 Speak</button>
+    <button class="btn danger" id="resetBtn" type="button">Reset</button>
+  </div>
+
+  <div class="status" id="status">Loading...</div>
+
+  <!-- card -->
+  <div class="card">
+    <div class="chi" id="chi">—</div>
+
+    <button class="speakable is-hidden" id="jpn" type="button">
+      <span class="word"></span><span class="spk">🔊</span>
+    </button>
+
+    <button class="speakable is-hidden" id="kana" type="button">
+      <span class="word"></span><span class="spk">🔊</span>
+    </button>
+  </div>
+
+  <div class="footer">
+    Tap the Japanese word or the kana to hear it. Data format for <code>items.json</code>:
+    an array of objects with keys <code>"chi"</code>, <code>"jpn"</code>, <code>"kana"</code> and optional <code>"cat"</code>.
+    Example: <code>[{"chi":"一","jpn":"一","kana":"いち","cat":"number"}]</code>
+  </div>
+
+</div>
+
+<!-- revise overlay -->
+<div class="revise-overlay is-hidden" id="reviseOverlay">
+  <div class="revise-panel">
+    <div class="revise-head">
+      <h2>Revise</h2>
+      <span class="spacer"></span>
+      <span class="revise-count" id="reviseCount"></span>
+      <button class="btn small" id="reviseCloseBtn" type="button">✕ Close</button>
+    </div>
+    <div class="revise-search-row">
+      <input id="reviseSearch" type="search" placeholder="Search Chinese / Japanese / kana / category…">
+    </div>
+    <div class="revise-body" id="reviseBody"></div>
+    <div class="revise-foot">
+      <button class="btn primary" id="reviseStartBtn" type="button">Done → Start shuffle</button>
+      <button class="btn" id="reviseCloseBtn2" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
