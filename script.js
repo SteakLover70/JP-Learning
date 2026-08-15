@@ -1,4 +1,4 @@
-// script.js — Reveal/Next + Select-all categories + tap-to-pronounce (Web Speech API)
+// script.js — Reveal/Next + collapsible categories + tap-to-pronounce + Revise mode
 // Data shape: [{chi:"", jpn:"", kana:"", cat:"optional-category"}]
 
 /* -------------------------
@@ -9,6 +9,7 @@ const startBtn = document.getElementById('startBtn');
 const revealNextBtn = document.getElementById('revealNextBtn');
 const prevBtn = document.getElementById('prevBtn');
 const speakBtn = document.getElementById('speakBtn');
+const resetBtn = document.getElementById('resetBtn');
 
 const statusEl = document.getElementById('status');
 const chiEl = document.getElementById('chi');
@@ -20,6 +21,8 @@ const kanaTextEl = kanaEl.querySelector('.word');
 const categoryListEl = document.getElementById('categoryList');
 const toggleAllBtn = document.getElementById('toggleAllBtn');
 const catCountEl = document.getElementById('catCount');
+const catSummaryEl = document.getElementById('catSummary');
+const catToggleBtn = document.getElementById('catToggleBtn');
 
 const speechPanel = document.getElementById('speechPanel');
 const autoSpeakChk = document.getElementById('autoSpeakChk');
@@ -36,6 +39,7 @@ const STORAGE_STATE = 'vocab-state';
 const STORAGE_CATS = 'vocab-cats';
 const STORAGE_KNOWN = 'vocab-known-cats';
 const STORAGE_SPEECH = 'vocab-speech';
+const STORAGE_CATS_OPEN = 'vocab-cats-open';
 
 let items = [];
 let workingItems = [];
@@ -173,12 +177,11 @@ function speak(text){
   text = (text || '').trim();
   if(!text) return;
 
-  // ignore accidental duplicate taps within 250 ms
   const now = Date.now();
   if(text === lastSpeak.text && now - lastSpeak.at < 250) return;
   lastSpeak = {text, at: now};
 
-  try{ synth.cancel(); }catch(e){}   // stop anything already playing
+  try{ synth.cancel(); }catch(e){}
 
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'ja-JP';
@@ -194,7 +197,6 @@ function speak(text){
   u.onerror = ()=> markSpeaking(false);
 
   currentUtterance = u;
-  // small delay helps Safari right after cancel()
   setTimeout(()=>{ try{ synth.speak(u); }catch(e){ markSpeaking(false); } }, 30);
 }
 
@@ -202,7 +204,6 @@ function currentItem(){
   return (pos >= 0 && pos < order.length) ? workingItems[order[pos]] : null;
 }
 
-/* kana is the most reliable reading; fall back to the kanji/word */
 function speakText(it){
   if(!it) return '';
   const kana = (it.kana || '').trim();
@@ -270,11 +271,44 @@ function updateUI(){
 }
 
 /* -------------------------
-   Category UI
+   Category UI (compact + collapsible)
    ------------------------- */
+function setCatOpen(open){
+  if(!categoryListEl) return;
+  categoryListEl.classList.toggle('is-collapsed', !open);
+  if(catToggleBtn){
+    catToggleBtn.textContent = open ? 'Hide ▴' : 'Show ▾';
+    catToggleBtn.setAttribute('aria-expanded', String(open));
+  }
+  try{ localStorage.setItem(STORAGE_CATS_OPEN, open ? '1' : '0'); }catch(e){}
+}
+function isCatOpen(){
+  return !categoryListEl.classList.contains('is-collapsed');
+}
+function initCatToggle(){
+  let open = false;                                  // closed by default = small panel
+  try{ open = localStorage.getItem(STORAGE_CATS_OPEN) === '1'; }catch(e){}
+  setCatOpen(open);
+  if(catToggleBtn){
+    catToggleBtn.addEventListener('click', ()=> setCatOpen(!isCatOpen()));
+  }
+}
+
 function updateCatUIState(){
   const total = availableCategories.length;
   if(catCountEl) catCountEl.textContent = total ? `${chosenCategories.size} / ${total} selected` : '';
+
+  if(catSummaryEl){
+    if(!total){
+      catSummaryEl.textContent = '';
+    } else {
+      const sel = availableCategories.filter(c => chosenCategories.has(c));
+      if(!sel.length) catSummaryEl.textContent = 'None selected — tap “Show”';
+      else if(sel.length === total) catSummaryEl.textContent = 'All categories';
+      else catSummaryEl.textContent = sel.slice(0,3).join('、') + (sel.length > 3 ? ` +${sel.length-3} more` : '');
+    }
+  }
+
   if(!toggleAllBtn) return;
   if(!total){
     toggleAllBtn.disabled = true;
@@ -355,6 +389,7 @@ function start(){
   history = [];
   revealed = false;
   saveState();
+  setCatOpen(false);      // keep the screen tidy once drilling starts
   goNext();
 }
 
@@ -392,7 +427,7 @@ function previous(){
 
 function resetStorage(){
   if(!confirm('Remove stored items, categories and progress from this browser?')) return;
-  [STORAGE_ITEMS,STORAGE_STATE,STORAGE_CATS,STORAGE_KNOWN,STORAGE_SPEECH].forEach(k=>localStorage.removeItem(k));
+  [STORAGE_ITEMS,STORAGE_STATE,STORAGE_CATS,STORAGE_KNOWN,STORAGE_SPEECH,STORAGE_CATS_OPEN].forEach(k=>localStorage.removeItem(k));
   items = []; workingItems = []; order = []; pos = -1; history = []; revealed = false;
   chosenCategories = new Set(); availableCategories = [];
   categoryListEl.innerHTML = '';
@@ -493,6 +528,7 @@ function finishLoadFromItems(arr, sourceNote){
    ------------------------- */
 async function init(){
   loadSpeechSettings();
+  initCatToggle();
 
   if(!speechSupported){
     speechPanel.classList.add('is-hidden');
@@ -501,7 +537,6 @@ async function init(){
     refreshVoices();
     synth.addEventListener?.('voiceschanged', refreshVoices);
     synth.onvoiceschanged = refreshVoices;
-    // Safari sometimes fills the list late
     [200, 600, 1500].forEach(ms => setTimeout(refreshVoices, ms));
   }
 
@@ -560,6 +595,7 @@ startBtn.addEventListener('click', start);
 revealNextBtn.addEventListener('click', revealNextAction);
 prevBtn.addEventListener('click', previous);
 speakBtn.addEventListener('click', speakCurrent);
+if(resetBtn) resetBtn.addEventListener('click', resetStorage);
 
 if(toggleAllBtn){
   toggleAllBtn.addEventListener('click', ()=>{
@@ -571,7 +607,7 @@ if(toggleAllBtn){
 /* tap the word / the kana to pronounce */
 jpnEl.addEventListener('click', ()=>{
   const it = currentItem();
-  if(it) speak(speakText(it));       // kana reading if available, else the word
+  if(it) speak(speakText(it));
 });
 kanaEl.addEventListener('click', ()=>{
   const it = currentItem();
@@ -610,6 +646,141 @@ document.addEventListener('visibilitychange', ()=>{
   }
 });
 
+/* =========================================================
+   REVISE MODE — scrollable list of the selected categories
+   ========================================================= */
+const reviseBtn        = document.getElementById('reviseBtn');
+const reviseOverlay    = document.getElementById('reviseOverlay');
+const reviseBody       = document.getElementById('reviseBody');
+const reviseCountEl    = document.getElementById('reviseCount');
+const reviseSearch     = document.getElementById('reviseSearch');
+const reviseStartBtn   = document.getElementById('reviseStartBtn');
+const reviseCloseBtn   = document.getElementById('reviseCloseBtn');
+const reviseCloseBtn2  = document.getElementById('reviseCloseBtn2');
+
+let reviseOpen = false;
+let reviseGroups = [];
+
+function buildReviseGroups(){
+  const groups = new Map();
+  const seen = new Set();
+  getFilteredItems().forEach(it=>{
+    const cat = ((it.cat || 'uncategorized').toString().trim()) || 'uncategorized';
+    const key = cat + '|' + it.chi + '|' + it.jpn + '|' + it.kana;
+    if(seen.has(key)) return;
+    seen.add(key);
+    if(!groups.has(cat)) groups.set(cat, []);
+    groups.get(cat).push(it);
+  });
+  return Array.from(groups.entries()).sort((a,b)=> a[0].localeCompare(b[0], 'ja'));
+}
+
+function makeReviseRow(it){
+  const row = document.createElement('div');
+  row.className = 'revise-row';
+
+  const chi = document.createElement('span');
+  chi.className = 'r-chi';
+  chi.textContent = it.chi || '—';
+
+  const jpn = document.createElement('span');
+  jpn.className = 'r-jpn';
+  jpn.textContent = it.jpn || '';
+
+  const kana = document.createElement('span');
+  kana.className = 'r-kana';
+  kana.textContent = it.kana || '';
+
+  const spk = document.createElement('span');
+  spk.className = 'r-spk';
+  spk.textContent = '🔊';
+
+  row.append(chi, jpn, kana, spk);
+  row.addEventListener('click', ()=>{
+    speak((it.kana || '').trim() || (it.jpn || '').trim());
+  });
+  return row;
+}
+
+function renderRevise(){
+  const q = (reviseSearch.value || '').trim().toLowerCase();
+  reviseBody.innerHTML = '';
+  let shown = 0, cats = 0;
+
+  reviseGroups.forEach(([cat, rows])=>{
+    const matches = q
+      ? rows.filter(it =>
+          (it.chi  || '').toLowerCase().includes(q) ||
+          (it.jpn  || '').toLowerCase().includes(q) ||
+          (it.kana || '').toLowerCase().includes(q) ||
+          cat.toLowerCase().includes(q))
+      : rows;
+    if(!matches.length) return;
+
+    const g = document.createElement('div');
+    g.className = 'revise-group';
+    const h = document.createElement('h3');
+    h.textContent = `${cat} · ${matches.length}`;
+    g.appendChild(h);
+    matches.forEach(it => { g.appendChild(makeReviseRow(it)); shown++; });
+    reviseBody.appendChild(g);
+    cats++;
+  });
+
+  if(!shown){
+    const p = document.createElement('div');
+    p.className = 'revise-empty';
+    p.textContent = q ? 'Nothing matches that filter.'
+                      : 'No items in the selected categories.';
+    reviseBody.appendChild(p);
+  }
+  reviseCountEl.textContent = shown
+    ? `${shown} words · ${cats} categor${cats === 1 ? 'y' : 'ies'}`
+    : '';
+}
+
+function openRevise(){
+  if(!items.length){
+    alert('No items loaded yet. Upload a file or host items.json first.');
+    return;
+  }
+  if(chosenCategories.size === 0){
+    alert('Please tick at least one category to revise.');
+    return;
+  }
+  reviseGroups = buildReviseGroups();
+  reviseSearch.value = '';
+  renderRevise();
+  show(reviseOverlay, true);
+  document.body.classList.add('revise-open');
+  reviseBody.scrollTop = 0;
+  reviseOpen = true;
+}
+
+function closeRevise(){
+  try{ if(synth) synth.cancel(); }catch(e){}
+  markSpeaking(false);
+  show(reviseOverlay, false);
+  document.body.classList.remove('revise-open');
+  reviseOpen = false;
+}
+
+if(reviseBtn){
+  reviseBtn.addEventListener('click', openRevise);
+  reviseSearch.addEventListener('input', renderRevise);
+  reviseCloseBtn.addEventListener('click', closeRevise);
+  reviseCloseBtn2.addEventListener('click', closeRevise);
+  reviseStartBtn.addEventListener('click', ()=>{ closeRevise(); start(); });
+
+  reviseOverlay.addEventListener('click', (e)=>{ if(e.target === reviseOverlay) closeRevise(); });
+
+  document.addEventListener('keydown', (e)=>{
+    if(!reviseOpen) return;
+    if(e.key === 'Escape'){ e.preventDefault(); closeRevise(); }
+    e.stopPropagation();
+  }, true);
+}
+
 /* -------------------------
    iPhone / iPad: block double-tap zoom
    ------------------------- */
@@ -620,7 +791,7 @@ document.addEventListener('visibilitychange', ()=>{
     if(now - lastTouchEnd <= 350){
       e.preventDefault();
       const el = e.target && e.target.closest
-        ? e.target.closest('button, label, input, a, .speakable')
+        ? e.target.closest('button, label, input, a, .speakable, .revise-row')
         : null;
       if(el) el.click();
     }
